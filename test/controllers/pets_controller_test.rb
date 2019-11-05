@@ -1,6 +1,8 @@
 require 'test_helper'
 
 describe PetsController do
+  PET_FIELDS = %w(id age name human).sort
+  
   describe "index" do
     it "responds with JSON and success" do
       get pets_path
@@ -20,7 +22,7 @@ describe PetsController do
       expect(body).must_be_instance_of Array
       body.each do |pet|
         expect(pet).must_be_instance_of Hash
-        expect(pet.keys.sort).must_equal ["age", "human", "id", "name"]
+        expect(pet.keys.sort).must_equal PET_FIELDS
       end
     end
     
@@ -56,7 +58,7 @@ describe PetsController do
       body = JSON.parse(response.body)
       
       expect(body).must_be_instance_of Hash
-      expect(body.keys.sort).must_equal ["age", "human", "id", "name"]
+      expect(body.keys.sort).must_equal PET_FIELDS
       expect(body["id"]).must_equal pet.id
       expect(body["age"]).must_equal pet.age
       expect(body["human"]).must_equal pet.human
