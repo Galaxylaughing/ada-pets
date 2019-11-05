@@ -8,8 +8,10 @@ class PetsController < ApplicationController
     pet = Pet.find_by(id: params[:id]).as_json(only: [:id, :name, :age, :human])
     if pet
       render json: pet, status: :ok
+      return
     else
       render json: { ok: false, errors: ["Not Found"] }, status: :not_found
+      return
     end
   end
   
