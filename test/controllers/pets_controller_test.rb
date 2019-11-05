@@ -56,6 +56,7 @@ describe PetsController do
       body = JSON.parse(response.body)
       
       expect(body).must_be_instance_of Hash
+      expect(body.keys.sort).must_equal ["age", "human", "id", "name"]
       expect(body["id"]).must_equal pet.id
       expect(body["age"]).must_equal pet.age
       expect(body["human"]).must_equal pet.human
@@ -71,7 +72,8 @@ describe PetsController do
       body = JSON.parse(response.body)
       
       expect(body).must_be_instance_of Hash
-      expect(body.empty?).must_equal true
+      expect(body["ok"]).must_equal false
+      expect(body.keys).must_include "errors"
     end
   end
 end
