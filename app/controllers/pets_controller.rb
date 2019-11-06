@@ -24,18 +24,31 @@ class PetsController < ApplicationController
       render json: pet.as_json(only: [:id]), status: :created
       return
     else
-      render json: {
-        ok: false, 
-        errors: pet.errors.messages
-        }, status: :bad_request
-        return
-      end
-    end
-    
-    private
-    
-    def pet_params
-      params.require(:pet).permit(:name, :age, :human)
+      render json: { ok: false, errors: pet.errors.messages}, status: :bad_request
+      return
     end
   end
   
+  def update
+    pet = Pet.find_by(id: params[:id])
+    
+    if pet
+      if pet.update(pet_params)
+        render json: pet.as_json(only: [:id]), status: :ok
+        return
+      else
+        render json: { ok: false, errors: pet.errors.messages }, status: :bad_request
+        return
+      end
+    else
+      render json: { ok: false, errors: {id: "no pet found with id #{params[:id]}"} }, status: :bad_request
+      return
+    end
+  end
+  
+  private
+  
+  def pet_params
+    params.require(:pet).permit(:name, :age, :human)
+  end
+end

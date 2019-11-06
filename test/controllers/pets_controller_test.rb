@@ -80,5 +80,60 @@ describe PetsController do
       expect(body["errors"].keys).must_include "age"
     end
     
+    describe "update" do
+      let(:pet) {
+        pets(:one)
+      }
+      
+      let(:new_pet_data) {
+        {
+          pet: {
+            age: 3,
+            name: 'Peanut Sr.',
+          }
+        }
+      }
+      
+      it "can update a pet with valid params" do
+        expect {
+          patch pet_path(pet.id), params: new_pet_data
+        }.wont_differ "Pet.count"
+        
+        body = check_response(expected_type: Hash, expected_status: :ok)
+        updated_pet = Pet.find_by(id: body["id"])
+        expect(updated_pet).wont_be_nil
+        expect(updated_pet.age).must_equal new_pet_data[:pet][:age]
+        expect(updated_pet.name).must_equal new_pet_data[:pet][:name]
+        expect(updated_pet.human).must_equal pet.human
+      end
+      
+      it "won't update a pet with invalid params" do
+        new_pet_data[:pet][:age] = nil
+        
+        expect {
+          patch pet_path(pet.id), params: new_pet_data
+        }.wont_differ "Pet.count"
+        
+        body = check_response(expected_type: Hash, expected_status: :bad_request)
+        expect(body["ok"]).must_equal false
+        expect(body["errors"].keys).must_include "age"
+        
+        updated_pet = Pet.find_by(id: pet.id)
+        expect(updated_pet).wont_be_nil
+        expect(updated_pet.age).must_equal pet.age
+        expect(updated_pet.name).must_equal pet.name
+        expect(updated_pet.human).must_equal pet.human
+      end
+      
+      it "returns JSON and bad_request for an invalid pet id" do
+        expect {
+          patch pet_path(-1), params: new_pet_data
+        }.wont_differ "Pet.count"
+        
+        body = check_response(expected_type: Hash, expected_status: :bad_request)
+        expect(body["ok"]).must_equal false
+        expect(body["errors"].keys).must_include "id"
+      end
+    end
   end
 end
