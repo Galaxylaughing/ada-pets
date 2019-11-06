@@ -4,22 +4,10 @@ describe PetsController do
   PET_FIELDS = %w(id age name human).sort
   
   describe "index" do
-    it "responds with JSON and success" do
+    it "responds with JSON, success, and array of pet hashes" do
       get pets_path
       
-      expect(response.header['Content-Type']).must_include 'json'
-      must_respond_with :ok
-    end
-    
-    it "responds with an array of pet hashes" do
-      # Act
-      get pets_path
-      
-      # Get the body of the response
-      body = JSON.parse(response.body)
-      
-      # Assert
-      expect(body).must_be_instance_of Array
+      body = check_response(expected_type: Array, expected_status: :ok)
       body.each do |pet|
         expect(pet).must_be_instance_of Hash
         expect(pet.keys.sort).must_equal PET_FIELDS
@@ -27,15 +15,11 @@ describe PetsController do
     end
     
     it "will respond with an empty array when there are no pets" do
-      # Arrange
       Pet.destroy_all
       
-      # Act
       get pets_path
-      body = JSON.parse(response.body)
       
-      # Assert
-      expect(body).must_be_instance_of Array
+      body = check_response(expected_type: Array, expected_status: :ok)
       expect(body).must_equal []
     end
   end
@@ -45,19 +29,10 @@ describe PetsController do
       pets(:one)
     }
     
-    it "responds with JSON and success" do
+    it "responds with JSON, success, and a hash of pet data" do
       get pet_path(pet.id)
       
-      expect(response.header['Content-Type']).must_include 'json'
-      must_respond_with :ok
-    end
-    
-    it "responds with a hash of pet data" do
-      get pet_path(pet.id)
-      
-      body = JSON.parse(response.body)
-      
-      expect(body).must_be_instance_of Hash
+      body = check_response(expected_type: Hash, expected_status: :ok)
       expect(body.keys.sort).must_equal PET_FIELDS
       expect(body["id"]).must_equal pet.id
       expect(body["age"]).must_equal pet.age
@@ -68,12 +43,7 @@ describe PetsController do
     it "will respond with empty hash and not_found if the pet does not exist" do
       get pet_path(-1)
       
-      expect(response.header['Content-Type']).must_include 'json'
-      must_respond_with :not_found
-      
-      body = JSON.parse(response.body)
-      
-      expect(body).must_be_instance_of Hash
+      body = check_response(expected_type: Hash, expected_status: :not_found)
       expect(body["ok"]).must_equal false
       expect(body.keys).must_include "errors"
     end
@@ -95,7 +65,7 @@ describe PetsController do
         post pets_path, params: pet_data
       }.must_differ 'Pet.count', 1
       
-      must_respond_with :created
+      body = check_response(expected_type: Hash, expected_status: :created)
     end
     
     it "will respond with bad_request for invalid params" do
@@ -105,11 +75,7 @@ describe PetsController do
         post pets_path, params: pet_data
       }.wont_differ "Pet.count"
       
-      must_respond_with :bad_request
-      
-      expect(response.header['Content-Type']).must_include 'json'
-      
-      body = JSON.parse(response.body)
+      body = check_response(expected_type: Hash, expected_status: :bad_request)
       expect(body["ok"]).must_equal false
       expect(body["errors"].keys).must_include "age"
     end
