@@ -78,4 +78,41 @@ describe PetsController do
       expect(body.keys).must_include "errors"
     end
   end
+  
+  describe "create" do
+    let(:pet_data) {
+      {
+        pet: {
+          age: 13,
+          name: 'Stinker',
+          human: 'Grace'
+        }
+      }
+    }
+    
+    it "can create a new pet" do
+      expect {
+        post pets_path, params: pet_data
+      }.must_differ 'Pet.count', 1
+      
+      must_respond_with :created
+    end
+    
+    it "will respond with bad_request for invalid params" do
+      pet_data[:pet][:age] = nil
+      
+      expect {
+        post pets_path, params: pet_data
+      }.wont_differ "Pet.count"
+      
+      must_respond_with :bad_request
+      
+      expect(response.header['Content-Type']).must_include 'json'
+      
+      body = JSON.parse(response.body)
+      expect(body["ok"]).must_equal false
+      expect(body["errors"].keys).must_include "age"
+    end
+    
+  end
 end
